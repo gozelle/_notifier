@@ -47,7 +47,7 @@ func (p *Notifier) Sent() {
 
 // Empty 判断通知器是否为空状态（未触发过的状态）
 func (p *Notifier) Empty() bool {
-	return p.sentAt != nil
+	return p.sentAt == nil
 }
 
 // Clear 重置通知器状态
