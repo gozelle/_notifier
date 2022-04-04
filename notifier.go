@@ -10,14 +10,14 @@ func NewNotifier() *Notifier {
 
 // Notifier 监控通知器
 type Notifier struct {
-	triggeredAt  *time.Time
-	reTriggerAt  *time.Time
-	muteDuration time.Duration
+	triggeredAt    *time.Time
+	reTriggerAt    *time.Time
+	remindDuration time.Duration
 }
 
-// SetMuteDuration 设置沉默时间，在此时间段内，调用 ReTrigger() 将得到 false
-func (p *Notifier) SetMuteDuration(muteDuration time.Duration) *Notifier {
-	p.muteDuration = muteDuration
+// SetRemindDuration 设置提醒周期，在此时间段内，调用 Remind() 将得到 false
+func (p *Notifier) SetRemindDuration(d time.Duration) *Notifier {
+	p.remindDuration = d
 	return p
 }
 
@@ -56,10 +56,10 @@ func (p *Notifier) Remind() bool {
 	if p.reTriggerAt == nil {
 		p.reTriggerAt = p.triggeredAt
 	}
-	if p.muteDuration == 0 || p.reTriggerAt == nil {
+	if p.remindDuration == 0 || p.reTriggerAt == nil {
 		return false
 	}
-	if uint64(time.Since(*p.reTriggerAt)) > uint64(p.muteDuration) {
+	if uint64(time.Since(*p.reTriggerAt)) > uint64(p.remindDuration) {
 		now := time.Now()
 		p.reTriggerAt = &now
 		return true
