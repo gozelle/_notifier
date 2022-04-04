@@ -26,6 +26,11 @@ func (p *Notifier) Trigger() {
 	p.triggeredAt = &now
 }
 
+// Triggered 获取首次是否已经触发的状态
+func (p *Notifier) Triggered() bool {
+	return p.triggeredAt != nil
+}
+
 // Reset 重置通知器
 func (p *Notifier) Reset() {
 	p.triggeredAt = nil
