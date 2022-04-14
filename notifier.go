@@ -39,24 +39,20 @@ func (p *State) FromLastRemindedAt() time.Duration {
 type Callback func(state State)
 type Trigger func() bool
 
-func NewNotifier() *Notifier {
-	return &Notifier{}
+func NewNotifier(remindDuration time.Duration) *Notifier {
+	return &Notifier{
+		RemindDuration: remindDuration,
+	}
 }
 
 // Notifier 监控通知器
 type Notifier struct {
+	RemindDuration time.Duration // 提醒周期，在此时间段内，将不会触发提醒
 	state          *State
-	remindDuration time.Duration
 	alertCallback  Callback
 	remindCallback Callback
 	repairCallback Callback
 	once           sync.Once
-}
-
-// SetRemindDuration 设置提醒周期，在此时间段内，调用 Remind() 将得到 false
-func (p *Notifier) SetRemindDuration(d time.Duration) *Notifier {
-	p.remindDuration = d
-	return p
 }
 
 // InitOnce 设置通知器的触发回调函数，在里面实现告警、提醒、修复的消息触发
@@ -123,10 +119,10 @@ func (p *Notifier) remind() bool {
 	if p.getState().lastRemindedAt == nil {
 		p.getState().lastRemindedAt = p.getState().sentAt
 	}
-	if p.remindDuration == 0 || p.getState().lastRemindedAt == nil {
+	if p.RemindDuration == 0 || p.getState().lastRemindedAt == nil {
 		return false
 	}
-	if uint64(time.Since(*p.getState().lastRemindedAt)) > uint64(p.remindDuration) {
+	if uint64(time.Since(*p.getState().lastRemindedAt)) > uint64(p.RemindDuration) {
 		now := time.Now()
 		p.getState().lastRemindedAt = &now
 		return true
