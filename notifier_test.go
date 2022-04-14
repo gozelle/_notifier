@@ -1,27 +1,30 @@
-package _monitor
+package _notifier
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
 
 func TestNewTimer(t *testing.T) {
-	timer := NewNotifier()
-	timer.SetMuteDuration(3 * time.Second)
+	notifier := NewNotifier()
+	notifier.SetRemindDuration(3 * time.Second)
+	notifier.SetCallbacks(
+		func(state *State) {
+			t.Log("告警了")
+		},
+		func(state *State) {
+			t.Log("提醒了")
+		},
+		func(state *State) {
+			t.Log("修复了")
+		})
 	i := 0
 	for {
 		i++
-		if i == 2 || i == 12 {
-			timer.Trigger()
-			fmt.Println("触发", time.Now().Unix())
-		}
-		if i == 9 || i == 19 {
-			timer.Reset()
-			fmt.Println("重置", time.Now().Unix())
-			fmt.Printf("\n\n")
-		}
-		fmt.Println("ReTrigger:", timer.ReTrigger(), time.Now().Unix())
+		t.Logf("第 %d 秒", i)
+		notifier.Check(func() bool {
+			return i != 9 && i != 19
+		})
 		time.Sleep(1 * time.Second)
 		if i > 20 {
 			break
