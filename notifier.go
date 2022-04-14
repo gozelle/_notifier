@@ -1,6 +1,7 @@
 package _notifier
 
 import (
+	"sync"
 	"time"
 )
 
@@ -35,7 +36,7 @@ func (p *State) FromLastRemindedAt() time.Duration {
 	return time.Since(*p.lastRemindedAt)
 }
 
-type Callback func(state *State)
+type Callback func(state State)
 type Trigger func() bool
 
 func NewNotifier() *Notifier {
@@ -46,10 +47,10 @@ func NewNotifier() *Notifier {
 type Notifier struct {
 	state          *State
 	remindDuration time.Duration
-	initialized    bool
 	alertCallback  Callback
 	remindCallback Callback
 	repairCallback Callback
+	once           sync.Once
 }
 
 // SetRemindDuration 设置提醒周期，在此时间段内，调用 Remind() 将得到 false
@@ -58,15 +59,13 @@ func (p *Notifier) SetRemindDuration(d time.Duration) *Notifier {
 	return p
 }
 
-// SetCallbacks 设置通知器的触发回调函数，在里面实现告警、提醒、修复的消息触发
-func (p *Notifier) SetCallbacks(alert, remind, repair Callback) {
-	if p.initialized {
-		return
-	}
-	p.initialized = true
-	p.alertCallback = alert
-	p.remindCallback = remind
-	p.repairCallback = repair
+// InitOnce 设置通知器的触发回调函数，在里面实现告警、提醒、修复的消息触发
+func (p *Notifier) InitOnce(alert, remind, repair Callback) {
+	p.once.Do(func() {
+		p.alertCallback = alert
+		p.remindCallback = remind
+		p.repairCallback = repair
+	})
 }
 
 // Check 检查是否触发条件，并完成相应的触发, 返回 true 则触发报警
@@ -74,17 +73,17 @@ func (p *Notifier) Check(trigger Trigger) {
 	if trigger() {
 		if p.empty() {
 			if p.alertCallback != nil {
-				p.alertCallback(p.getState())
+				p.alertCallback(*p.getState())
 			}
 			p.sent()
 		} else if p.remind() {
 			if p.remindCallback != nil {
-				p.remindCallback(p.getState())
+				p.remindCallback(*p.getState())
 			}
 		}
 	} else if !p.empty() {
 		if p.repairCallback != nil {
-			p.repairCallback(p.getState())
+			p.repairCallback(*p.getState())
 		}
 		p.clear()
 	}
