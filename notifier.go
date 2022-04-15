@@ -53,14 +53,11 @@ type Notifier struct {
 	initialed      bool
 }
 
-// InitOnce 设置通知器的触发回调函数，在里面实现告警、提醒、修复的消息触发
-func (p *Notifier) InitOnce(alert, remind, repair Callback) {
-	if !p.initialed {
-		p.initialed = true
-		p.alertCallback = alert
-		p.remindCallback = remind
-		p.repairCallback = repair
-	}
+// SetCallbacks 设置通知器的触发回调函数，在里面实现告警、提醒、修复的消息触发
+func (p *Notifier) SetCallbacks(alert, remind, repair Callback) {
+	p.alertCallback = alert
+	p.remindCallback = remind
+	p.repairCallback = repair
 }
 
 // Trigger 是否触发报警，内部重置状态
