@@ -36,7 +36,6 @@ func (p *State) FromLastRemindedAt() time.Duration {
 }
 
 type Callback func(state State)
-type Trigger func() bool
 
 func NewNotifier(remindDuration time.Duration) *Notifier {
 	return &Notifier{
@@ -64,9 +63,9 @@ func (p *Notifier) InitOnce(alert, remind, repair Callback) {
 	}
 }
 
-// Check 检查是否触发条件，并完成相应的触发, 返回 true 则触发报警
-func (p *Notifier) Check(trigger Trigger) {
-	if trigger() {
+// Trigger 是否触发报警，内部重置状态
+func (p *Notifier) Trigger(trigger bool) {
+	if trigger {
 		if p.empty() {
 			if p.alertCallback != nil {
 				p.alertCallback(*p.getState())
