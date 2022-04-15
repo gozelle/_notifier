@@ -1,7 +1,6 @@
 package _notifier
 
 import (
-	"sync"
 	"time"
 )
 
@@ -52,16 +51,17 @@ type Notifier struct {
 	alertCallback  Callback
 	remindCallback Callback
 	repairCallback Callback
-	once           sync.Once
+	initialed      bool
 }
 
 // InitOnce 设置通知器的触发回调函数，在里面实现告警、提醒、修复的消息触发
 func (p *Notifier) InitOnce(alert, remind, repair Callback) {
-	p.once.Do(func() {
+	if !p.initialed {
+		p.initialed = true
 		p.alertCallback = alert
 		p.remindCallback = remind
 		p.repairCallback = repair
-	})
+	}
 }
 
 // Check 检查是否触发条件，并完成相应的触发, 返回 true 则触发报警
